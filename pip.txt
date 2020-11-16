@@ -1,2 +1,0 @@
-pip3 install chatterbot==1.0.4
-pip3 install pytz
