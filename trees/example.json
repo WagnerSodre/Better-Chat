@@ -1,5 +1,6 @@
 {
     "compliment": "Hi {{name}}, welcome to Blue Bank, How can I help you?",
+    "function": "start()",
     "start": [
         {
             "name": "history",

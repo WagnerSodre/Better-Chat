@@ -1,0 +1,62 @@
+{
+    "function": "example",
+    "language": "english",
+    "name": "John",
+    "tree": {
+        "compliment": "Hi {{name}}, welcome to Blue Bank, How can I help you?",
+        "function": "start()",
+        "start": [
+            {
+                "answer": "Your card activity in the last 7 days: {{checkHistory}}",
+                "function": "checkHistory({{id}})",
+                "name": "history"
+            },
+            {
+                "answer": "How can we help you with your credit card?",
+                "childs": [
+                    {
+                        "answerFloat": "Your new credit card was approved, and the card limit is USD: {{check_credit}}",
+                        "answerNull": "Sorry, at this time we cannot issue you a card.",
+                        "function": "check_credit({{id}}, {{branch.name}})",
+                        "name": "new_card"
+                    },
+                    {
+                        "answerFloat": "Your request was approved, new limit is USD: {{check_credit}}",
+                        "answerNull": "Sorry, at this time we cannot give you more credit.",
+                        "function": "check_credit({{id}}, {{branch.name}})",
+                        "name": "more_credit"
+                    },
+                    {
+                        "answer": "We are sorry you want to cancel your credit card, we can offer you a limit of USD: {{credit_card_offer.limit}}, with the tax of {{credit_card_offer.tax}} per month. Do you want to try our new offer or do you really want to cancel the card?",
+                        "childs": [
+                            {
+                                "answer": "Thank you for staying with us, your credit card was just ajusted to the limit of USD: {{credit_card_offer.limit}}, with the tax of {{credit_card_offer.tax}} per month.",
+                                "name": "new_offer"
+                            },
+                            {
+                                "answer": "Your credit card was just cancelled. Do you want to inform us any problem that made you cancel your card?",
+                                "childs": [
+                                    {
+                                        "answer": "We are sorry for experience, thank you for sharing with us what happened. Your feedback will be analyzed and answered by email in few days.",
+                                        "function": "get_feedback({{id}}, {{user_input}})",
+                                        "getUserInput": "Please, tell us what happened.",
+                                        "name": "feedback"
+                                    }
+                                ],
+                                "name": "confirm_cancel"
+                            }
+                        ],
+                        "function": "credit_card_offer({{id}})",
+                        "name": "cancel_credit_card"
+                    }
+                ],
+                "name": "credit_card"
+            },
+            {
+                "answer": "For a better financing analysis, we will redirect you to a human attendant.",
+                "callHuman": true,
+                "name": "financing"
+            }
+        ]
+    }
+}

@@ -1,8 +1,6 @@
 import os
 import json
-
-from chatterbot import ChatBot
-from chatterbot.trainers import ChatterBotCorpusTrainer
+import inquirer
 
 class ApplicationFramework:
     def __init__(self):
@@ -10,7 +8,6 @@ class ApplicationFramework:
 
     def __runBot(self):
         self.setupBot()
-        self.startBot()
         self.startChat()
 
 # Create an "application":
@@ -29,28 +26,29 @@ class betterChat(ApplicationFramework):
                 botData['name'] = input("Enter bot name: ")
             if not 'language' in botData:
                 botData['language'] = input("Enter bot language: ")
+            if not 'tree' in botData:
+                trees = []
+                for file in os.listdir('./trees/'):
+                    trees.append(file.replace(".json", "")) 
+                questions = [
+                    inquirer.List('option',
+                        message="Which tree and functions do you want to use?",
+                        choices=trees,
+                    ),
+                ]
+                answers = inquirer.prompt(questions)
+                botData['function'] = answers['option']
+                botData['tree'] = json.load(open('./trees/'+answers['option']+'.json','r'))
 
         # update bot file
         with open("bot.json", "w") as jsonFile:
-            json.dump(botData, jsonFile)
-
-    def startBot(self):
-        #start bot
-        global bot
-        bot = ChatBot(
-            botData['name'],
-            logic_adapters=[
-                {
-                    "import_path": "chatterbot.logic.BestMatch"
-                }
-            ]
-        )
-        trainer = ChatterBotCorpusTrainer(bot)
-        trainer.train('./corpus/'+botData['language']+'/')
+            jsonFile.write(json.dumps(botData,indent=4, sort_keys=True, separators=(',', ': ')).replace('\\n','\n'))
 
     def startChat(self):
+        tree = botData['tree']['start']
+        print(botData['name'] + ': ' + botData['tree']['compliment'])
         while True:
-            message=input('\t\t\tYou:')
+            message=input('You:')
             if message.strip()=='Tchau':
                 print(botData['name'],': Tchau')
                 break
