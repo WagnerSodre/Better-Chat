@@ -1,4 +1,5 @@
 import nltk
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 import json
 import re
@@ -9,6 +10,11 @@ import string # to process standard python strings
 #reference: https://medium.com/@ritidass29/create-your-chatbot-using-python-nltk-88809fa621d1
 
 #TODO: Filtrar oque vai ser lido do json como text, Executar funções no JSON, Implementar análise de sentimentos
+
+sa = SentimentIntensityAnalyzer()
+
+score = [(tok, score) for tok, score in sa.lexicon.items() if " " in tok]
+
 with open('bot.json') as json_file:
     botData = json.load(json_file)
 
@@ -58,22 +64,57 @@ def response(user_response):
     sent_tokens[idx] = sent_tokens[idx][0:50]
     updateTree(sent_tokens[idx], tree)
     if(req_tfidf==0):
-        robo_response="I am sorry! I don't understand you"
+        if tree != botData['tree']['start']:
+            res = retry(sent_tokens[idx])
+            robo_response = robo_response+res
+        else:
+            robo_response="I am sorry! I don't understand you"
         return robo_response
     else:
-        robo_response = robo_response+tree['answer']
+        if 'answer' in tree:
+            robo_response = robo_response+tree['answer']
+        elif 'answerNull' in tree:
+            robo_response = robo_response+tree['answerNull']
+        elif tree != botData['tree']['start']:
+            res = retry(sent_tokens[idx])
+            print(sent_tokens[idx])
+            robo_response = robo_response+res
         if 'childs' in tree:
             goTo(tree, 'childs')
         elif 'options' in tree:
             goTo(tree, 'options')
         else:
-            robo_response = robo_response+'\nCan I help you with anything else?'
-            resetTree()
+            if robo_response != "I am sorry! I don't understand you":
+                robo_response = robo_response+'\nCan I help you with anything else?'
+                resetTree()
         return robo_response+'\nYou: '
 
 def resetTree():
     global tree
     tree = botData['tree']['start']
+
+def retry(target):
+    temp = tree
+    resetTree()
+    findByChild(temp, tree)
+    updateTree(target, tree)
+    if 'answer' in tree:
+        return tree['answer']
+    elif 'answerNull' in tree:
+        return tree['answerNull']
+    elif tree != botData['tree']['start']:
+        return retry(target)
+    else:
+       return "I am sorry! I don't understand you"
+
+def findByChild(branch, originalTree):
+    for child in originalTree:
+        if json.dumps(child).lower().find(json.dumps(branch).lower()) >= 0:
+            if ('childs' in child and child['childs'] == branch) or ('options' in child and child['options'] == branch):
+                global tree
+                tree = originalTree
+                return
+            findByChild(branch, child['childs'])
 
 def goTo(originalTree, branch):
     global tree
@@ -97,10 +138,12 @@ print(botData['name']+": "+botData['tree']['compliment']+'\nYou: ')
 
 while(flag==True):
     user_response = input()
-    user_response=user_response.lower()
+    user_response = user_response.lower()
+    scores = sa.polarity_scores(user_response)
+    print("Sentiment: ", scores)
     if(user_response!='bye'):
         if(user_response=='thanks' or user_response=='thank you' ):
-            flag=False
+            flag = False
             print(botData['name']+": You are welcome..")
         else:
             if(greeting(user_response)!=None):

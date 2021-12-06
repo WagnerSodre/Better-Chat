@@ -8,7 +8,7 @@
         "start": [
             {
                 "name": "history",
-                "tags": "talk about my account activity, check my account history, show me the account extract",
+                "tags": "account activity, check my account history, show me the account extract",
                 "answer": "Your card activity in the last 7 days: {{checkHistory}}",
                 "function": "checkHistory({{id}})"
             },
@@ -44,7 +44,7 @@
                             },
                             {
                                 "name": "confirm_cancel",
-                                "tags": "no, no thanks, deny",
+                                "tags": "no, no thanks, deny, cancel",
                                 "answer": "Your credit card was just cancelled. Do you want to inform us any problem that made you cancel your card?",
                                 "childs": [
                                     {
