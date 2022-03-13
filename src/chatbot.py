@@ -7,6 +7,8 @@ import numpy as np
 import random
 import string # to process standard python strings
 
+import functions
+
 #reference: https://medium.com/@ritidass29/create-your-chatbot-using-python-nltk-88809fa621d1
 
 #TODO: Filtrar oque vai ser lido do json como text, Executar funções no JSON, Implementar análise de sentimentos
@@ -19,6 +21,8 @@ with open('bot.json') as json_file:
     botData = json.load(json_file)
 
 text = json.dumps(botData['tree']['start'])
+start =  getattr(functions, 'start')()
+globals().update(start)
 tree = botData['tree']['start']
 text=text.lower()# converts to lowercase
 nltk.download('punkt') # first-time use only
@@ -71,6 +75,8 @@ def response(user_response):
             robo_response="I am sorry! I don't understand you"
         return robo_response
     else:
+        if 'function' in tree:
+            execFunction(tree['function'])
         if 'answer' in tree:
             robo_response = robo_response+tree['answer']
         elif 'answerNull' in tree:
@@ -88,6 +94,19 @@ def response(user_response):
                 robo_response = robo_response+'\nCan I help you with anything else?'
                 resetTree()
         return robo_response+'\nYou: '
+
+def execFunction(function):
+    functionName = function.split('(')[0]
+    if functionName not in globals():
+        varsToReplace = re.search('{{(.*)}}', function)
+        varsValue = []
+        for i in range(len(varsToReplace.groups())):
+            varsValue.append(globals()[varsToReplace.group(i).replace('{{', '').replace('}}', '')])
+        functionValue =  getattr(functions, functionName)(*varsValue)
+        globals().update({functionName: functionValue})
+    print(tree)
+    if 'answer' in tree:
+        tree['answer'] = tree['answer'].replace('{{'+functionName+'}}', globals()[functionName])
 
 def resetTree():
     global tree
@@ -134,19 +153,19 @@ def updateTree(text, originalTree):
                 tree = branch
 
 flag=True
-print(botData['name']+": "+botData['tree']['compliment']+'\nYou: ')
+print(botData['name']+": " + botData['tree']['compliment'] + '\n You: ')
 
 while(flag==True):
     user_response = input()
     user_response = user_response.lower()
     scores = sa.polarity_scores(user_response)
     print("Sentiment: ", scores)
-    if(user_response!='bye'):
-        if(user_response=='thanks' or user_response=='thank you' ):
+    if(user_response != 'bye'):
+        if(user_response == 'thanks' or user_response == 'thank you'):
             flag = False
             print(botData['name']+": You are welcome..")
         else:
-            if(greeting(user_response)!=None):
+            if(greeting(user_response) != None):
                 print(botData['name']+": "+greeting(user_response))
             else:
                 sent_tokens.append(user_response)
