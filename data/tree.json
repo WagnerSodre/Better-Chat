@@ -1,8 +1,7 @@
 {
     "compliment": "Hi {{name}}, welcome to Blue Bank, How can I help you?",
     "function": "start()",
-    "start": [
-        {
+    "start": [{
             "name": "history",
             "function": "checkHistory({{id}})",
             "answer": "Your card activity in the last 7 days: {{checkHistory}}"
@@ -10,8 +9,7 @@
         {
             "name": "credit_card",
             "answer": "How can we help you with your credit card?",
-            "childs": [
-                {
+            "childs": [{
                     "name": "new_card",
                     "function": "check_credit({{id}}, {{branch.name}})",
                     "answerFloat": "Your new credit card was approved, and the card limit is USD: {{check_credit}}",
@@ -27,22 +25,19 @@
                     "name": "cancel_credit_card",
                     "function": "credit_card_offer({{id}})",
                     "answer": "We are sorry you want to cancel your credit card, we can offer you a limit of USD: {{credit_card_offer.limit}}, with the tax of {{credit_card_offer.tax}} per month. Do you want to try our new offer or do you really want to cancel the card?",
-                    "childs": [
-                        {
+                    "childs": [{
                             "name": "new_offer",
                             "answer": "Thank you for staying with us, your credit card was just ajusted to the limit of USD: {{credit_card_offer.limit}}, with the tax of {{credit_card_offer.tax}} per month."
                         },
                         {
                             "name": "confirm_cancel",
                             "answer": "Your credit card was just cancelled. Do you want to inform us any problem that made you cancel your card?",
-                            "childs": [
-                                {
-                                    "name": "feedback",
-                                    "function": "get_feedback({{id}}, {{user_input}})",
-                                    "getUserInput": "Please, tell us what happened.",
-                                    "answer": "We are sorry for experience, thank you for sharing with us what happened. Your feedback will be analyzed and answered by email in few days."
-                                }
-                            ]
+                            "childs": [{
+                                "name": "feedback",
+                                "function": "get_feedback({{id}}, {{user_input}})",
+                                "getUserInput": "Please, tell us what happened.",
+                                "answer": "We are sorry for experience, thank you for sharing with us what happened. Your feedback will be analyzed and answered by email in few days."
+                            }]
                         }
                     ]
                 }
