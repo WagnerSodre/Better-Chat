@@ -1,7 +1,5 @@
 import json
 
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-
 from src.chatbot import Chatbot
 
 with open('bot.json') as json_file:
@@ -9,18 +7,12 @@ with open('bot.json') as json_file:
 
 chatbot = Chatbot(botData)
 
-sa = SentimentIntensityAnalyzer()
-
-score = [(tok, score) for tok, score in sa.lexicon.items() if " " in tok]
-
 flag=True
 print(botData['name']+": " + botData['tree']['compliment'] + '\n You: ')
 
 while(flag==True):
     user_response = input()
     user_response = user_response.lower()
-    scores = sa.polarity_scores(user_response)
-    print("Sentiment: ", scores)
     if(user_response != 'bye'):
         if(user_response == 'thanks' or user_response == 'thank you'):
             flag = False
@@ -29,7 +21,13 @@ while(flag==True):
             if(chatbot.greeting(user_response) != None):
                 print(botData['name']+": "+chatbot.greeting(user_response))
             else:
-                chatbot.getResponse(user_response)
+                response = chatbot.getResponse(user_response)
+                if response["negativity"] == True:
+                    flag = False
+                    print("Enviando para um atendente humano... (Esse é o fim da interação nessa versão)")
+                else:
+                    print(response["message"])
+                    print(chatbot.__dict__)
     else:
         flag=False
         print(botData['name']+": Bye! take care..")    

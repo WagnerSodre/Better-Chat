@@ -8,11 +8,14 @@ class UserFunctions():
         id = 1
         return ({'name': name, 'id': id})
 
-    def checkHistory(self, id):
-        return 'Today: U$: 1000.00'
+    def checkTrack(self, order_number):
+        if order_number == '12345':
+            return 'Pedido saiu para entrega'
+        else:
+            return None
 
-    def checkCredit(self, id, branchName):
-        return None
-
-    def creditCardOffer(self, id):
-        return {'limit': 2000, 'tax': 20}
+    def unlockCard(self, card_number, code):
+        if card_number == '12345' and code == '123':
+            return True
+        else:
+            return None

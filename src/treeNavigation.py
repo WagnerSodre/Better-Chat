@@ -39,6 +39,7 @@ class TreeNavigation():
     def updateTree(self, text, originalTree):
         # get the target branch
         for branch in originalTree:
+            #print(branch)
             # find branch with the text
             if json.dumps(branch).lower().find(text) >= 0:
                 if 'options' in branch:

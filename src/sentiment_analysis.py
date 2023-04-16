@@ -16,5 +16,5 @@ corpus = ["Absolutely perfect! Love it! :-) :-) :-)", "Horrible! Completely usel
 
 for doc in corpus:
     scores = sa.polarity_scores(doc)
-    print('{:+}: {}'.format(scores['compound'], doc))
+    #('{:+}: {}'.format(scores['compound'], doc))
 
