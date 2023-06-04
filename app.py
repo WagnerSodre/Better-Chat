@@ -1,28 +1,20 @@
 # -*- coding: utf-8 -*-
 import json
-from chalice import Chalice, Response
+from chalice import Chalice, Response, CORSConfig
 
-from src.chatbot import Chatbot
+from chalicelib.chatbot import Chatbot
+
+cors_config = CORSConfig(
+    allow_origin='*',
+    allow_headers="*"
+)
 
 app = Chalice(app_name='better_chat')
 
-@app.route('/interact', methods=['OPTIONS'])
-def interact():
-    res = Response(
-                headers={
-                    "Access-Control-Allow-Methods": "POST,PUT,GET,OPTIONS",
-                    "Access-Control-Allow-Origin": app.current_request.headers["Origin"],
-                    "Access-Control-Allow-Headers": "authorization,content-type,x-empcookie",
-                    "Access-Control-Max-Age": "6000",
-                },
-                body="",
-            )
-    print(res.__dict__)
-    return res
-
-@app.route('/interact', methods=['POST'])
+@app.route('/interact', methods=['POST'], content_types=['application/json'], cors=cors_config)
 def interact():
     print('call')
+    print(app.current_request)
     payload = app.current_request.json_body 
     if not payload:
         payload = {}
@@ -31,7 +23,7 @@ def interact():
     chatbot = payload.get('chatbot', None)
 
     if not chatbot:
-        with open('bot.json') as json_file:
+        with open('/var/task/chalicelib/data/bot.json') as json_file:
             botData = json.load(json_file)
 
         chatbot = Chatbot(botData, None)
@@ -48,11 +40,18 @@ def interact():
             if(chatbot.greeting(user_response) != None):
                 res = {"message": chatbot.greeting(user_response), "chatbot": chatbot.export()}
             else:
-                response = chatbot.getResponse(user_response)
-                if response["negativity"] == True:
-                    res = {"message": "Enviando para um atendente humano... (Esse é o fim da interação nessa versão)", "chatbot": None}
-                else:
-                    res = {"message": response["message"], "chatbot": chatbot.export()}
+                try:
+                    response = chatbot.getResponse(user_response)
+                    if response["negativity"] == True:
+                        res = {"message": "Enviando para um atendente humano... (Esse é o fim da interação nessa versão)", "chatbot": None}
+                    else:
+                        res = {"message": response["message"], "chatbot": chatbot.export()}
+                except:
+                    with open('/var/task/chalicelib/data/bot.json') as json_file:
+                        botData = json.load(json_file)
+                    chatbot = Chatbot(botData, None)
+                    return {"message": "Me desculpe, eu não te entendi.", "chatbot": chatbot.export()}
     else:
         res = {"message": "Tchau! Até a próxima!", "chatbot": None}   
+    print(res)
     return res
