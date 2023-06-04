@@ -1,11 +1,11 @@
 # Run the project
 
+pip3 install chalice
+
 pip3 install -r requirements.txt
 
-python3 app.py
+chalice local
 
-# Running with Docker
+# Deploying
 
-docker build -t  better-chat . && docker run -it better-chat bash
-
-python3 app.py
+chalice deploy
