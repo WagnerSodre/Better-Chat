@@ -1,7 +1,11 @@
 # Run the project
 
-pip3 install chatterbot==1.0.4
+pip3 install -r requirements.txt
 
-pip3 install pytz
+python3 app.py
+
+# Running with Docker
+
+docker build -t  better-chat . && docker run -it better-chat bash
 
 python3 app.py

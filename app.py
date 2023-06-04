@@ -1,57 +1,57 @@
-import os
+# -*- coding: utf-8 -*-
 import json
+from chalice import Chalice, Response, CORSConfig
 
-from chatterbot import ChatBot
-from chatterbot.trainers import ListTrainer
+from chalicelib.chatbot import Chatbot
 
-class ApplicationFramework:
-    def __init__(self):
-        self.__runBot()
+cors_config = CORSConfig(
+    allow_origin='*',
+    allow_headers="*"
+)
 
-    def __runBot(self):
-        self.setupBot()
-        self.startBot()
-        self.startChat()
+app = Chalice(app_name='better_chat')
 
-# Create an "application":
-class betterChat(ApplicationFramework):
-    def setupBot(self):
-        # checks if bot file exists, if not, create a new one
-        if not os.path.isfile('bot.json'):
-            with open('bot.json', 'w') as f: 
-                json.dump({}, f)
+@app.route('/interact', methods=['POST'], content_types=['application/json'], cors=cors_config)
+def interact():
+    print('call')
+    print(app.current_request)
+    payload = app.current_request.json_body 
+    if not payload:
+        payload = {}
+        
+    user_response = payload.get('user_response', None)
+    chatbot = payload.get('chatbot', None)
 
-        # check the properties of the bot, if there isn't, ask the user
-        with open('bot.json') as json_file:
-            global botData
+    if not chatbot:
+        with open('/var/task/chalicelib/data/bot.json') as json_file:
             botData = json.load(json_file)
-            if not 'name' in botData:
-                botData['name'] = input("Enter bot name: ")
-            if not 'language' in botData:
-                botData['language'] = input("Enter bot language: ")
 
-        # update bot file
-        with open("bot.json", "w") as jsonFile:
-            json.dump(botData, jsonFile)
+        chatbot = Chatbot(botData, None)
+        return {"message": botData['tree']['compliment'], "chatbot": chatbot.export()}
+    else:
+        chatbot = Chatbot(None, chatbot)
 
-    def startBot(self):
-        #start bot
-        global bot
-        bot = ChatBot(botData['name'])
-        trainer = ListTrainer(bot)
+    user_response = user_response.lower()
 
-        for files in os.listdir('./corpus/'+botData['language']+'/'):
-            data=open('./corpus/'+botData['language']+'/'+files,'r').readlines()
-            trainer.train(data)
-
-    def startChat(self):
-        while True:
-            message=input('\t\t\tYou:')
-            if message.strip()!='Tchau':
-                reply = bot.get_response(message)
-                print(botData['name'],reply)
-            if message.strip()=='Tchau':
-                print(botData['name'],': Tchau')
-                break
-
-betterChat()
+    if(user_response != 'tchau'):
+        if('obrigado' in user_response):
+            res = {"message": "Por nada! Ajudo em mais algo?", "chatbot": chatbot.export()}
+        else:
+            if(chatbot.greeting(user_response) != None):
+                res = {"message": chatbot.greeting(user_response), "chatbot": chatbot.export()}
+            else:
+                try:
+                    response = chatbot.getResponse(user_response)
+                    if response["negativity"] == True:
+                        res = {"message": "Enviando para um atendente humano... (Esse é o fim da interação nessa versão)", "chatbot": None}
+                    else:
+                        res = {"message": response["message"], "chatbot": chatbot.export()}
+                except:
+                    with open('/var/task/chalicelib/data/bot.json') as json_file:
+                        botData = json.load(json_file)
+                    chatbot = Chatbot(botData, None)
+                    return {"message": "Me desculpe, eu não te entendi.", "chatbot": chatbot.export()}
+    else:
+        res = {"message": "Tchau! Até a próxima!", "chatbot": None}   
+    print(res)
+    return res
